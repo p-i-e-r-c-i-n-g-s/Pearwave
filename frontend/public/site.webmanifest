@@ -3,12 +3,12 @@
   "short_name": "Pearwave",
   "icons": [
     {
-      "src": "/icon-512.png",
+      "src": "/static/dist/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "/icon.svg",
+      "src": "/static/dist/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     }
