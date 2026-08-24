@@ -676,8 +676,13 @@ def _download_file(url: str, dest: str) -> None:
     with tempfile.NamedTemporaryFile(dir=dest_path.parent, delete=False) as tmp:
         tmp_path = Path(tmp.name)
 
-        with urllib.request.urlopen(req) as resp:  # noqa: S310
-            shutil.copyfileobj(resp, tmp)
+        try:
+            with urllib.request.urlopen(req) as resp:  # noqa: S310
+                shutil.copyfileobj(resp, tmp)
+        except BaseException:
+            # A failed download must not leave a stray temp file next to the binary.
+            tmp_path.unlink(missing_ok=True)
+            raise
 
     # ensure executable
     tmp_path.chmod(tmp_path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
