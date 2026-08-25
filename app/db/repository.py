@@ -608,7 +608,11 @@ class Repository:
                 position=next_pos,
             )
             session.add(row)
-            playlist.entry_count = next_pos
+            session.flush()
+            playlist.entry_count = int(
+                session.scalar(select(func.count(PlaylistEntry.id)).where(PlaylistEntry.playlist_id == playlist_id))
+                or 0
+            )
             session.flush()
             return row
 
