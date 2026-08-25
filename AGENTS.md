@@ -10,7 +10,7 @@ Use this file as the default working guide for code agents in this repo. Keep ch
 
 ## Stack
 
-- Backend: Python 3.10+, FastAPI, SQLAlchemy, Jinja2, `soco`
+- Backend: Python 3.12+, FastAPI, SQLAlchemy, Jinja2, `soco`
 - Frontend: Vue 3, Vue Router, Vite, `@nuxt/ui`
 - Runtime tools: `yt-dlp`, `deno`, `ffmpeg`
 - Storage: SQLite by default via `AIRWAVE_DB_URL`
