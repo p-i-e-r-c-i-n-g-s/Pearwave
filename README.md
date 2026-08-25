@@ -3,7 +3,7 @@
 
 ![GitHub stars](https://img.shields.io/github/stars/76696265636f646572/Airwave?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/76696265636f646572/Airwave?style=social)
-![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
+![Python](https://img.shields.io/badge/python-3.12+-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-API-009688.svg)
 [![Vue](https://img.shields.io/badge/Vue-3-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org/)
 
