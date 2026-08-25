@@ -1169,17 +1169,29 @@ class StreamEngine:
             except InterruptedError as exc:
                 reason = str(exc)
                 if reason in {"pause", "resume"} or (reason == "seek" and self.state.paused):
-                    self._stream_paused_cycle()
-                    if self._stop_event.is_set():
-                        break
-                    start_offset_seconds = self._consume_pending_seek_seconds(
-                        default=float(self.playback_progress()["elapsed_seconds"] or 0.0)
-                    )
+                    paused_interrupt: InterruptedError | None = None
+                    try:
+                        self._stream_paused_cycle()
+                    except InterruptedError as paused_exc:
+                        # A skip/stop/user_stop arriving while paused must be handled by
+                        # the branches below. Raising from inside this handler would
+                        # escape _play_item entirely, leaving the row stuck in `playing`
+                        # with no history entry and `paused` never cleared.
+                        paused_interrupt = paused_exc
+                    if paused_interrupt is None:
+                        if self._stop_event.is_set():
+                            break
+                        start_offset_seconds = self._consume_pending_seek_seconds(
+                            default=float(self.playback_progress()["elapsed_seconds"] or 0.0)
+                        )
+                        self.state.paused = False
+                        self.state.paused_elapsed_seconds = None
+                        self._set_playback_offset_seconds(start_offset_seconds)
+                        self._notify_state_changed()
+                        continue
+                    reason = str(paused_interrupt)
                     self.state.paused = False
                     self.state.paused_elapsed_seconds = None
-                    self._set_playback_offset_seconds(start_offset_seconds)
-                    self._notify_state_changed()
-                    continue
                 if reason == "seek":
                     start_offset_seconds = self._consume_pending_seek_seconds(
                         default=float(self.playback_progress()["elapsed_seconds"] or 0.0)
