@@ -65,9 +65,25 @@ jobs:
     
       - name: Set image tags
         id: meta
+        # github.ref_name reaches the shell through env, never through ${{ }}.
+        # A ${{ }} expression is substituted into the script BEFORE bash parses
+        # it, so the ref name would be read as shell source. Git allows $, `,
+        # ;, | and & in branch names (it forbids spaces, ~, ^, :, ?, *, [ and
+        # \), so a branch named a$(...) executed arbitrary commands in this
+        # runner -- which holds packages: write and a GHCR login. Only someone
+        # with push access can create such a branch, so this was not remotely
+        # exploitable, but it turned "can push a branch" into "can run code in
+        # CI", and that is not a step anyone should get for free.
+        #
+        # Through env the value is passed as data and quoting it at each use is
+        # enough. Keep it that way: if you add another github.* value here, add
+        # it to env rather than inlining the expression.
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
         run: |
           SHORT_SHA="${GITHUB_SHA::7}"
-          REF_SLUG=$(echo "${{ github.ref_name }}" | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+          REF_SLUG=$(printf '%s' "$REF_NAME" | tr '/' '-' | tr '[:upper:]' '[:lower:]')
           # THIS fork's namespace, not upstream's (76696265636f646572/airwave).
           # secrets.GITHUB_TOKEN is scoped to this repository and can never
           # write to another account's packages, so the inherited name failed
@@ -75,12 +91,12 @@ jobs:
           # upstream. Must stay lowercase -- GHCR rejects uppercase paths.
           REPO_LOWER="p-i-e-r-c-i-n-g-s/pearwave"
           echo "tags<<EOF" >> "$GITHUB_OUTPUT"
-          if [ "${{ github.ref_type }}" = "tag" ]; then
-            echo "ghcr.io/${REPO_LOWER}:${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          if [ "$REF_TYPE" = "tag" ]; then
+            echo "ghcr.io/${REPO_LOWER}:${REF_NAME}" >> "$GITHUB_OUTPUT"
             echo "ghcr.io/${REPO_LOWER}:latest" >> "$GITHUB_OUTPUT"
           else
             echo "ghcr.io/${REPO_LOWER}:${REF_SLUG}-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
-            if [ "${{ github.ref_name }}" = "main" ] || [ "${{ github.ref_name }}" = "master" ]; then
+            if [ "$REF_NAME" = "main" ] || [ "$REF_NAME" = "master" ]; then
               echo "ghcr.io/${REPO_LOWER}:latest" >> "$GITHUB_OUTPUT"
             fi
           fi
