@@ -18,3 +18,7 @@ bin/
 node_modules/
 app/static/dist/
 .cursor/
+# Wrangler local secrets. Never committed -- this is where a DISCOGS_TOKEN
+# or equivalent would land during `wrangler dev`.
+.dev.vars
+.dev.vars.*
